@@ -30,7 +30,7 @@ The project implements:
 - Feature-track ownership and incremental map expansion.
 - Sparse bundle-adjustment residuals, parameterization, and Jacobian sparsity.
 - Similarity alignment for comparison with COLMAP.
-- Export of our reconstruction to a COLMAP-compatible dataset format.
+- Export of the custom reconstruction to a COLMAP-compatible dataset format.
 - Camera-path interpolation and video-rendering integration.
 
 External components include:
@@ -102,10 +102,10 @@ intrinsics.
 
 For memory control, COLMAP feature extraction used a maximum image
 dimension of 3200 pixels, first octave 0, and a feature budget of 2000.
-Our OpenCV SIFT pipeline used full-resolution images. Feature sets,
-matching behavior, and observation sets therefore differ.
+The custom pipeline used full-resolution images for OpenCV SIFT extraction.
+Feature sets, matching behavior, and observation sets therefore differ.
 
-| Metric | Our pipeline | COLMAP |
+| Metric | Custom pipeline | COLMAP |
 |---|---:|---:|
 | Registered images | 8 | 8 |
 | 3D points | 1,413 | 2,813 |
@@ -116,13 +116,14 @@ COLMAP produced approximately twice as many sparse points and more
 observations per point.
 
 COLMAP's reported mean reprojection error was 1.206 px. This is not
-directly comparable to our 0.775 px pre-filtering RMS: the aggregation
-and underlying observations differ.
+directly comparable to the custom pipeline's 0.775 px pre-filtering RMS:
+the aggregation and underlying observations differ.
 
 ## Camera-Pose Agreement
 
 Camera centers were matched by image filename. A seven-parameter
-similarity transform aligned COLMAP's centers to our coordinate system.
+similarity transform aligned COLMAP's centers to the custom
+reconstruction's coordinate system.
 
 | Metric | Result |
 |---|---:|
@@ -131,6 +132,9 @@ similarity transform aligned COLMAP's centers to our coordinate system.
 | Leave-one-camera-out center RMS / initial baseline | 5.54% |
 | Median orientation difference | 3.32° |
 | Maximum orientation difference | 4.12° |
+
+The initial baseline is the distance between cameras 1 and 2 in the
+custom reconstruction.
 
 The aligned center RMS is evaluated on the same cameras used to fit the
 similarity transformation. It therefore measures in-sample agreement.
@@ -148,15 +152,15 @@ COLMAP is a reference system, not ground truth.
 
 ## Gaussian Splatting Integration
 
-Our refined camera poses and 1,413 colored sparse points were exported
-to a COLMAP-compatible dataset format. COLMAP was not used to estimate
-the geometry for this initialization.
+The custom reconstruction's refined camera poses and 1,413 colored sparse
+points were exported to a COLMAP-compatible dataset format. COLMAP was
+not used to estimate the geometry for this initialization.
 
 Gaussian optimization and rendering used the external
 [Graphdeco Gaussian Splatting implementation](https://github.com/graphdeco-inria/gaussian-splatting).
 
 The renderer's initialization message confirmed that it loaded
-1,413 points from our reconstruction.
+1,413 points from the custom reconstruction.
 
 ### Experimental setup
 
@@ -175,8 +179,9 @@ The experiments used an NVIDIA GeForce RTX 3060 Laptop GPU with 6 GB VRAM.
 The tested environment used Python 3.12, PyTorch 2.9.0+cu130, and
 CUDA Toolkit 13.0.
 
-The run initialized from our SfM map completed training in approximately
-91 seconds. This is an observed run time, not a controlled benchmark.
+The run initialized from the custom SfM map completed training in
+approximately 91 seconds. This is an observed run time, not a controlled
+benchmark.
 
 ### Held-out appearance evaluation
 
@@ -186,7 +191,7 @@ at 536 × 714 pixels.
 | Initialization | Initial points | Test PSNR ↑ | Test L1 ↓ |
 |---|---:|---:|---:|
 | COLMAP | 2,813 | 21.632 dB | 0.038443 |
-| Our SfM | 1,413 | 19.788 dB | 0.052646 |
+| Custom SfM | 1,413 | 19.788 dB | 0.052646 |
 
 Higher PSNR and lower L1 indicate closer pixel agreement with the
 reference image.
@@ -196,7 +201,7 @@ experiment. Camera poses, initial point locations, colors, and coverage
 differ between the initializations, so the difference cannot be
 attributed to point count alone.
 
-The training log for our initialization reported:
+The training log for custom SfM initialization reported:
 
 | Evaluation | PSNR |
 |---|---:|
@@ -210,9 +215,9 @@ quantized image files.
 The training-view and held-out results show substantially better
 appearance agreement on views used for Gaussian optimization.
 
-| Reference | Our SfM initialization | COLMAP initialization |
+| Reference | Custom SfM initialization | COLMAP initialization |
 |---|---|---|
-| ![Reference image](assets/test_reference.png) | ![Our SfM render](assets/our_sfm_test_render.png) | ![COLMAP render](assets/colmap_test_render.png) |
+| ![Reference image](assets/test_reference.png) | ![Custom SfM render](assets/our_sfm_test_render.png) | ![COLMAP render](assets/colmap_test_render.png) |
 
 ### Evaluation scope
 
@@ -317,22 +322,3 @@ A clean-environment reproduction has not yet been independently verified.
 Gaussian Splatting uses a separate environment and compiled CUDA
 extensions. A local C++ header compatibility fix was required when
 building the rasterizer with CUDA Toolkit 13.0.
-
-## Interview Description
-
-I built an incremental sparse Structure-from-Motion pipeline that
-registered eight images and reconstructed 1,413 points. I implemented
-camera geometry, descriptor matching, normalized eight-point estimation,
-RANSAC, essential-matrix decomposition, triangulation, feature-track
-management, and the bundle-adjustment objective and sparsity structure.
-I used OpenCV for SIFT, direct essential estimation, and PnP, and SciPy
-for nonlinear optimization. Global bundle adjustment reduced RMS
-reprojection error by approximately 23%. I compared the result with
-COLMAP after similarity alignment and documented cases where low pixel
-error did not imply accurate geometry.
-
-I also exported my reconstruction to initialize the external Gaussian
-Splatting implementation, rendered an interpolated camera-path video,
-and compared held-out appearance quality against COLMAP initialization.
-My initialization achieved 19.79 dB PSNR versus 21.63 dB for COLMAP on
-the same test image.
