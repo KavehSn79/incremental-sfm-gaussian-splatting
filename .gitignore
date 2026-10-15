@@ -1,0 +1,29 @@
+# Python environments and caches
+reconstruction_env/
+.venv*/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Generated datasets, maps, caches, and training checkpoints
+/data/
+/outputs/
+
+# Packaging
+build/
+dist/
+*.egg-info/
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Windows download metadata
+*:Zone.Identifier
+
+# Unused capture files currently in the project root
+/DepthCamera_*.json
+/DepthCapture_*.png
