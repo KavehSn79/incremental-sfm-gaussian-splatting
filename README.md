@@ -23,7 +23,7 @@ external Graphdeco Gaussian Splatting implementation.
 7. Jointly refine camera poses and points using robust bundle adjustment.
 8. Filter observations and points using reprojection error, depth, and geometry.
 9. Compare camera poses with an independently generated COLMAP reconstruction.
-10. Export our map and camera poses for Gaussian Splatting.
+10. Export the custom map and camera poses for Gaussian Splatting.
 11. Train Gaussians and render an interpolated camera-path video.
 
 ## Implementation scope
@@ -97,10 +97,10 @@ Both experiments used seven appearance-training images and one held-out image,
 | Initialization | Initial points | Test PSNR ↑ | Test L1 ↓ |
 |---|---:|---:|---:|
 | COLMAP | 2,813 | 21.632 dB | 0.038443 |
-| Our SfM | 1,413 | 19.788 dB | 0.052646 |
+| Custom SfM | 1,413 | 19.788 dB | 0.052646 |
 
 Metrics were calculated from saved PNG renders against an identical reference
-image at 536 × 714 pixels. Our initialization achieved 1.844 dB lower test PSNR
+image at 536 × 714 pixels. Custom SfM initialization achieved 1.844 dB lower test PSNR
 in this single-image comparison.
 
 Camera poses, initial point locations, colors, and coverage differ between
@@ -110,7 +110,7 @@ The held-out image was excluded from Gaussian appearance optimization.
 Both SfM reconstructions used all eight photographs, so this is an
 appearance holdout with known estimated cameras.
 
-| Reference | Our SfM initialization | COLMAP initialization |
+| Reference | Custom SfM initialization | COLMAP initialization |
 |---|---|---|
 | ![](assets/test_reference.png) | ![](assets/our_sfm_test_render.png) | ![](assets/colmap_test_render.png) |
 
@@ -131,7 +131,7 @@ appearance holdout with known estimated cameras.
 | `src/bundle_adjust_all.py` | Global bundle adjustment and filtering |
 | `src/run_colmap.py` | Independent COLMAP baseline |
 | `src/compare_colmap.py` | Camera alignment and comparison |
-| `src/export_our_sfm.py` | Export our geometry for Gaussian Splatting |
+| `src/export_our_sfm.py` | Export custom geometry for Gaussian Splatting |
 | `src/portfolio_viewer.py` | Reconstruction visualization |
 | `src/demo_fundamental.py` | Synthetic geometry validation |
 | `src/test_bundle_adjustment.py` | Synthetic optimizer diagnostics |
@@ -199,7 +199,7 @@ Generated maps, caches, and diagnostics are stored in `outputs/`.
 Use the external implementation:
 https://github.com/graphdeco-inria/gaussian-splatting
 
-Our exported dataset is written to `data/gs_our_sfm`.
+The exported dataset is written to `data/gs_our_sfm`.
 Its COLMAP-compatible format does not mean COLMAP estimated this geometry.
 
 From the Gaussian Splatting repository, with its environment activated:
